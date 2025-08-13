@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  claude-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CLAUDE_CODE_VERSION: latest
+        TZ: Asia/Ho_Chi_Minh
+    container_name: claude-code-dev
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    ports:
+      - "${SSH_PORT}:22"
+    volumes:
+      # Workspace persistence
+      - claude_workspace:/workspace
+      # User home persistence
+      - claude_home:/home/node
+      # Command history persistence
+      - claude_history:/commandhistory
+      # Claude config persistence
+      - claude_config:/home/node/.claude
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - DEVCONTAINER=true
+      - NODE_PASSWORD=${NODE_PASSWORD:-claude123}
+      - SSH_PORT=${SSH_PORT:-2222}
+    command: >
+      bash -c "
+        echo 'node:${NODE_PASSWORD}' | chpasswd &&
+        service ssh start &&
+        tail -f /dev/null
+      "
+    stdin_open: true
+    tty: true
+
+volumes:
+  claude_workspace:
+    driver: local
+  claude_home:
+    driver: local
+  claude_history:
+    driver: local
+  claude_config:
+    driver: local
