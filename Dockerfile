@@ -29,6 +29,11 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
+# Install cloudflared
+RUN curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb \
+    && dpkg -i cloudflared.deb \
+    && rm cloudflared.deb
+
 # Install Claude Code globally
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 
@@ -74,12 +79,18 @@ RUN echo 'alias ll="ls -la"' >> ~/.bashrc && \
     echo 'alias ...="cd ../.."' >> ~/.bashrc && \
     echo 'alias cc="claude"' >> ~/.bashrc && \
     echo 'alias ccd="claude --dangerously-skip-permissions"' >> ~/.bashrc && \
+    echo 'alias expose="cloudflared tunnel --url"' >> ~/.bashrc && \
+    echo 'alias tunnel="cloudflared tunnel"' >> ~/.bashrc && \
+    echo 'expose-port() { cloudflared tunnel --url http://localhost:$1; }' >> ~/.bashrc && \
     echo 'alias ll="ls -la"' >> ~/.zshrc && \
     echo 'alias la="ls -la"' >> ~/.zshrc && \
     echo 'alias ..="cd .."' >> ~/.zshrc && \
     echo 'alias ...="cd ../.."' >> ~/.zshrc && \
     echo 'alias cc="claude"' >> ~/.zshrc && \
-    echo 'alias ccd="claude --dangerously-skip-permissions"' >> ~/.zshrc
+    echo 'alias ccd="claude --dangerously-skip-permissions"' >> ~/.zshrc && \
+    echo 'alias expose="cloudflared tunnel --url"' >> ~/.zshrc && \
+    echo 'alias tunnel="cloudflared tunnel"' >> ~/.zshrc && \
+    echo 'expose-port() { cloudflared tunnel --url http://localhost:$1; }' >> ~/.zshrc
 
 # Set default shell to zsh
 RUN sudo chsh -s $(which zsh) $USERNAME
